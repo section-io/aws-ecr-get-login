@@ -2,10 +2,16 @@
 test -z "${DEBUG}" || set -o xtrace
 set -o errexit
 
-test -n "${AWS_DEFAULT_REGION}" || {
-  echo AWS_DEFAULT_REGION environment variable required >&2
+if [ -z "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}"]
+then
+  echo AWS_DEFAULT_REGION or AWS_REGIONS environment variable required >&2
   exit 1
-}
+fi
+if [ -n "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}"]
+then
+  AWS_REGIONS="${AWS_DEFAULT_REGION}"
+fi
+unset AWS_DEFAULT_REGION
 
 test -n "${AWS_ACCESS_KEY_ID}" || {
   echo AWS_ACCESS_KEY_ID environment variable required >&2
@@ -76,9 +82,12 @@ parse_docker_login () {
 }
 
 refresh_credentials () {
-  login_command=$(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}")
-  login_args="${login_command#docker login }"
-  parse_docker_login ${login_args}
+  for region in ${AWS_REGIONS}
+  do
+    login_command=$(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}" --region "${region}")
+    login_args="${login_command#docker login }"
+    parse_docker_login ${login_args}
+  done
 }
 
 while true
