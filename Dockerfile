@@ -1,7 +1,11 @@
-FROM pebbletech/docker-aws-cli
-# https://github.com/pebble/docker-aws-cli
-
+FROM ubuntu:16.04
 MAINTAINER section.io support <support@section.io>
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends jq python python-pip python-setuptools && \
+    pip install awscli && \
+    apt-get purge -y python-pip python-setuptools && \
+    rm -rf /var/lib/apt/lists/*
 
 VOLUME /.docker/
 
