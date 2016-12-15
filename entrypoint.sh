@@ -2,12 +2,12 @@
 test -z "${DEBUG}" || set -o xtrace
 set -o errexit
 
-if [ -z "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}"]
+if [ -z "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}" ]
 then
   echo AWS_DEFAULT_REGION or AWS_REGIONS environment variable required >&2
   exit 1
 fi
-if [ -n "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}"]
+if [ -n "${AWS_DEFAULT_REGION}" ] && [ -z "${AWS_REGIONS}" ]
 then
   AWS_REGIONS="${AWS_DEFAULT_REGION}"
 fi
@@ -33,7 +33,7 @@ write_docker_credentials () {
   password="${2}"
   url="${3}"
 
-  auth=$(echo -n "${user}:${password}" | base64 | tr -d "\n")
+  auth=$(printf '%s:%s' "${user}" "${password}" | base64 | tr -d "\n")
   docker_file=/.docker/config.json
   work_file=$(mktemp)
 
@@ -86,6 +86,7 @@ refresh_credentials () {
   do
     login_command=$(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}" --region "${region}")
     login_args="${login_command#docker login }"
+    # shellcheck disable=SC2086
     parse_docker_login ${login_args}
   done
 }
