@@ -92,8 +92,7 @@ refresh_credentials () {
 }
 
 wait_for_credentials_to_approach_expiration () {
-  begin=$(date +%s)
-  expire=$(( begin + 60 * 60 * 11 ))
+  expire=$(( $(date +%s) + 60 * 60 * 11 ))
   while [ "${expire}" -gt "$(date +%s)" ]
   do
     sleep 60
