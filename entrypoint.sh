@@ -23,11 +23,6 @@ test -n "${AWS_SECRET_ACCESS_KEY}" || {
   exit 1
 }
 
-test -n "${AWS_ACCOUNT_ID}" || {
-  echo AWS_ACCOUNT_ID environment variable required >&2
-  exit 1
-}
-
 write_docker_credentials () {
   user="${1}"
   password="${2}"
@@ -84,7 +79,12 @@ parse_docker_login () {
 refresh_credentials () {
   for region in ${AWS_REGIONS}
   do
-    login_command=$(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}" --region "${region}")
+    if [ -z "${AWS_ACCOUNT_ID}" ]
+    then
+      login_command=$(aws ecr get-login --region "${region}")
+    else
+      login_command=$(aws ecr get-login --registry-ids "${AWS_ACCOUNT_ID}" --region "${region}")
+    fi
     login_args="${login_command#docker login }"
     # shellcheck disable=SC2086
     parse_docker_login ${login_args}
